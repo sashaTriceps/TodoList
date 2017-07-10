@@ -1,6 +1,5 @@
 import React from 'react';
 import TodoItem from './TodoItem';
-import ChangeItem from './ChangeItem';
 
 
 class AddTask extends React.Component {
@@ -8,23 +7,18 @@ class AddTask extends React.Component {
     super(props);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.state = {
-      todos: [
-        
-      ]
+      todos: []
     }
   }
 
   handleSubmit(e) {
-    e.preventDefault();
-    let task = this.refs.newTask.value;
-    console.log(task);
+    const task = this.refs.newTask.value;
     this.setState({ 
       todos: this.state.todos.concat(
         { taskName: task }
       )
     })
     this.refs.newTask.value = '';
-    this.tasks();
   }
 
   deleteItem = (i) => {
@@ -34,18 +28,8 @@ class AddTask extends React.Component {
     this.setState({todos: newTodos});
   }
 
-  tasks() {
-    console.log(this.state.todos);
-  }
-
-  showChangeWindow = () => {
-    console.log(true);
-    return <ChangeItem/>
-  }
-
   render() {
     var answer = <p>You don't have any tasks.</p>
-    console.log(this.state.todos)
     return (
       <div>
         <input ref="newTask"/>
@@ -56,8 +40,7 @@ class AddTask extends React.Component {
             { this.state.todos.length > 0 ?
             this.state.todos.map((todo, i) => {
               return <div><TodoItem index={i} taskName={todo.taskName}/>
-                <button onClick={() => this.showChangeWindow()}>Change</button>
-                <button onClick={() => this.deleteItem(i)}>Delete</button>
+                <img onClick={() => this.deleteItem(i)} src="http://s1.iconbird.com/ico/0612/49handdrawnicons/w24h241339857695error5.png"/>
                 </div>
             }
             ) : answer }
