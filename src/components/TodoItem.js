@@ -2,10 +2,8 @@ import React from 'react';
 
 class TodoItem extends React.Component {
   render() {
-    return (
-    <div key={this.props.index}>
-      <li>{this.props.taskName}</li>
-    </div>)
+    const { onDoubleClick, taskName } = this.props;
+    return <li onDoubleClick={onDoubleClick}>{taskName}</li>
   }
 }
 

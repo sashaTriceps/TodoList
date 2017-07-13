@@ -1,21 +1,21 @@
 import React from 'react';
 import TodoItem from './TodoItem';
+import FontAwesome from 'react-fontawesome';
 
 
 class AddTask extends React.Component {
   constructor(props) {
     super(props);
-    this.handleSubmit = this.handleSubmit.bind(this);
     this.state = {
-      todos: []
+      todos: [],
     }
   }
 
-  handleSubmit(e) {
+  handleSubmit = (e) => {
     const task = this.refs.newTask.value;
     this.setState({ 
       todos: this.state.todos.concat(
-        { taskName: task }
+        { taskName: task, editable: false }
       )
     })
     this.refs.newTask.value = '';
@@ -28,25 +28,50 @@ class AddTask extends React.Component {
     this.setState({todos: newTodos});
   }
 
-  render() {
-    var answer = <p>You don't have any tasks.</p>
+  showEditor = (e, i, taskName) => {
+    const newTodo = this.state.todos[i];
+    newTodo.editable = true;
+    this.setState({todos: [...this.state.todos, ...newTodo]});
+  }
+
+  save = () => {
+    console.log(this.state.todos);
+    const task = input.value;
+    
+    this.setState({todos: [...this.state.todos, ...task]})
+  }
+
+  render = () => {
+    const answer = `You don't have any tasks.`;
+    const {todos} =this.state;
     return (
       <div>
         <input ref="newTask"/>
-        <input type="submit" value="Add Task" onClick={this.handleSubmit}/>
-        <div>
+        <input type="submit" value="Add Task" onClick={e => this.handleSubmit(e)}/>
           <ol>
             
-            { this.state.todos.length > 0 ?
-            this.state.todos.map((todo, i) => {
-              return <div><TodoItem index={i} taskName={todo.taskName}/>
-                <img onClick={() => this.deleteItem(i)} src="http://s1.iconbird.com/ico/0612/49handdrawnicons/w24h241339857695error5.png"/>
-                </div>
-            }
-            ) : answer }
+          { todos.length > 0 ?
+          todos.map((todo, i) => {
+            return (
+              <div>
+                {
+                  todo.editable === true 
+                  ? 
+                    <form onSubmit={() => this.save()}>
+                      <input type='text' placeholder={todo.taskName} autoFocus/>
+                    </form> 
+                  :
+                    <TodoItem ref="task" onDoubleClick={e => this.showEditor(e, i, todo.taskName)}  
+                          taskName={todo.taskName}
+                          key={i}
+                    />
+                }
+                <FontAwesome name='rocket' onClick={() => this.deleteItem(i)}/>
+              </div>
+            )}
+          ) : <p>{answer}</p> }
 
-          </ol>
-        </div>
+        </ol>
       </div>
     )
   }
