@@ -1,9 +1,17 @@
 import React from 'react';
+import { Checkbox, RaisedButton, Paper } from 'material-ui';
+import '../css/TodoItem.css'
 
 class TodoItem extends React.Component {
   render() {
-    const { onDoubleClick, onChange, taskName } = this.props;
-    return <li onDoubleClick={onDoubleClick}><input onChange={onChange} type="checkbox"/> {taskName}</li>
+    const { onDoubleClick, onClick, onChange, taskName } = this.props;
+    return <Paper zDepth={1} className="todoItem" onDoubleClick={onDoubleClick}>
+              <div className="textfield">
+                <Checkbox className="checker" onCheck={onChange}/>
+                <span className="textItem">{taskName}</span>
+              </div> 
+              <RaisedButton className="deleteBtn" secondary={true} onClick={onClick}>Delete</RaisedButton>
+           </Paper>
   }
 }
 

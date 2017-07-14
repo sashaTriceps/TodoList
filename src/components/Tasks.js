@@ -1,6 +1,8 @@
 import React from 'react';
 import TodoItem from './TodoItem';
+import { Paper, TextField, RaisedButton, SelectField, MenuItem } from 'material-ui';
 import FontAwesome from 'react-fontawesome';
+import '../css/Task.css'
 
 
 class AddTask extends React.Component {
@@ -8,17 +10,20 @@ class AddTask extends React.Component {
     super(props);
     this.state = {
       todos: [],
+      sortType: 'All'
     }
   }
 
   handleSubmit = (e) => {
-    const task = this.refs.newTask.value;
+    const task = this.refs.newTask.input.value;
     this.setState({ 
       todos: this.state.todos.concat(
         { taskName: task, editable: false, checked: false }
       )
     })
-    this.refs.newTask.value = '';
+    this.refs.newTask.input.value = '';
+    const allTask = this.state.todos;
+    return allTask;
   }
 
   deleteItem = (i) => {
@@ -36,7 +41,7 @@ class AddTask extends React.Component {
 
   save = (event, todo) => {
     event.preventDefault();
-    todo.taskName = this.refs.newTodo.value;
+    todo.taskName = this.refs.newTodo.input.value;
     todo.editable = false;
     
     this.setState({todos: [...this.state.todos, ...todo]})
@@ -49,83 +54,79 @@ class AddTask extends React.Component {
       todo.checked = false;
     }
     this.setState({todos: [...this.state.todos, ...todo]});
+    console.log(todo.checked);
   }
 
-  filter = () => {
+  filter = (e) => {
+    console.log(e.nativeEvent.target.value);
+    this.setState({sortType: e.nativeEvent.target.value})
+    const doneTasks = [];
+    const notDoneTasks =[];
+    this.state.todos.forEach(todo => todo.checked ? doneTasks.push(todo) : notDoneTasks.push(todo) )
 
-    const arr1 = this.state.todos.map((todo) => {
-      if (todo.checked === true) {
-        return todo;
-      }
-    });
-
-    const doneTask = [];
-
-    for (var i = 0; i < arr1.length; i++) {
-      if (arr1[i] != undefined) {
-        doneTask.push(arr1[i]);
-      }
-    }
-
-    const arr2 = this.state.todos.map((todo) => {
-      if (todo.checked === false) {
-        return todo;
-      }
-    });
-
-    const notDoneTask = [];
-
-    for (var i = 0; i < arr2.length; i++) {
-      if (arr2[i] != undefined) {
-        notDoneTask.push(arr2[i]);
-      }
+    if (this.refs.sortList.value == 'All') {
+      this.setState({todos: this.handleSubmit()});
     }
 
     if (this.refs.sortList.value == 'Done') {
-      this.setState({todos: doneTask});
+      this.setState({todos: doneTasks});
     } 
     
     if (this.refs.sortList.value == 'Not done') {
-      this.setState({todos: notDoneTask});
+      this.setState({todos: notDoneTasks});
     }
+    console.log(this.state.todos);
   }
 
   render = () => {
     const answer = `You don't have any tasks.`;
     const {todos} = this.state;
     return (
-      <div>
-        <input ref="newTask"/>
-        <input type="submit" value="Add Task" onClick={e => this.handleSubmit(e)}/>
-        <select onChange={() => this.filter()} ref="sortList">
-          <option>Select filter</option>
-          <option>Done</option>
-          <option>Not done</option>
-        </select>
-        <ol>
-            
-          { todos.length > 0 ?
-          todos.map((todo, i) => {
-            return (
-              <div>
-                {
-                  todo.editable === true 
-                  ? 
-                    <form onSubmit={(event) => this.save(event, todo)}>
-                      <input ref="newTodo" type='text' placeholder={todo.taskName} autoFocus/>
-                    </form> 
-                  :
-                    <TodoItem ref="task" onChange={(e) => this.checked(e, todo)} onDoubleClick={e => this.showEditor(e, i, todo.taskName)}  
-                          taskName={todo.taskName}
-                          key={i}
-                    />
-                }
-                <FontAwesome name='rocket' onClick={() => this.deleteItem(i)}/>
-              </div>
-            )}
-          ) : <p>{answer}</p> }
-
-        </ol>
+      <div className="body" >
+        <Paper className="paper" zDepth={3}>
+          <div className="appName">
+            <h3 className="name">
+              Todo List with React!
+            </h3>
+          </div>
+          <div className="controlField">
+            <TextField className="textField" ref="newTask" placeholder="Write your task here."/>
+            <RaisedButton className="addButton" primary={true} onClick={e => this.handleSubmit(e)}>Add Task</RaisedButton>
+            <select className="select" onChange={this.filter} ref="sortList">
+              <option>All</option>
+              <option>Done</option>
+              <option>Not done</option>
+            </select>
+          </div> 
+          <div>
+              
+            { todos.length > 0 ?
+            todos.map((todo, i) => {
+              return (
+                <div>
+                  {
+                    todo.editable === true 
+                    ? 
+                      <form className="editItem" onSubmit={(event) => this.save(event, todo)}>
+                        <TextField ref="newTodo" class="editField" type='text' placeholder={todo.taskName} autoFocus/>
+                      </form> 
+                    :
+                      <div className="item">
+                        <TodoItem ref="task"
+                                className="item"
+                                onClick={() => this.deleteItem(i)} 
+                                onChange={(e) => this.checked(e, todo)} onDoubleClick={e => this.showEditor(e, i, todo.taskName)}  
+                                taskName={todo.taskName}
+                                key={i}
+                        />
+                      </div>
+                  }
+                </div>
+              )}
+               
+            ) : <p className="answer">{answer}</p> }
+          </div>
+        </Paper>
       </div>
     )
   }
