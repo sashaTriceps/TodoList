@@ -1,0 +1,15 @@
+.appWrapper {
+  width: 150px;
+  margin: 0 auto;
+}
+
+.about {
+  padding-top: 20px;
+  margin-left: 30%;
+}
+
+.article {
+  width: 75%;
+  margin: 0 auto;
+  padding: 0 0 20px 0;
+}

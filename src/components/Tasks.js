@@ -1,8 +1,13 @@
 import React from 'react';
 import TodoItem from './TodoItem';
+import About from './About';
+import Instruction from './Instruction';
+import Menu from './Menu';
 import { Paper, TextField, RaisedButton, SelectField, MenuItem } from 'material-ui';
 import FontAwesome from 'react-fontawesome';
 import '../css/Task.css'
+
+
 
 
 class AddTask extends React.Component {
@@ -11,7 +16,6 @@ class AddTask extends React.Component {
     this.state = {
       todos: [],
       allTodos: [],
-      sortType: 'All'
     }
   }
 
@@ -112,9 +116,11 @@ class AddTask extends React.Component {
   render = () => {
     const answer = `You don't have any tasks.`;
     const {todos} = this.state;
+
     return (
       <div className="body" >
         <Paper className="paper" zDepth={3}>
+          <Menu className="menu"/>
           <div className="appName">
             <h3 className="name">
               Todo List with React!

@@ -1,0 +1,24 @@
+.appWrap {
+  width: 150px;
+  margin: 0 auto;
+}
+
+.instruction {
+  padding-top: 20px;
+  margin-left: 15%;
+}
+
+.article {
+  width: 75%;
+  margin: 0 auto;
+}
+
+.listItem {
+  list-style: none;
+  margin-left: -40px;
+}
+
+.itemText {
+  color: blue;
+  text-decoration: none;
+}

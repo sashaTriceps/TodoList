@@ -1,0 +1,9 @@
+.counterWrapper {
+  width: 150px;
+  margin: 0 auto;
+}
+
+.counter {
+  padding-top: 20px;
+  margin-left: 15%;
+}
