@@ -8,18 +8,24 @@ import About from './components/About';
 import Instruction from './components/Instruction';
 import Counter from './components/Counter';
 import instructionsItem from './components/instructionsItem';
-
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import TodoReducer from './reducers/TodoReducer';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
+
+const store = createStore(TodoReducer);
 
 ReactDOM.render(
     <MuiThemeProvider>
-      <Router history={browserHistory}>
-        <Route path='/' component={AddTask}/>
-        <Route path='/home' component={AddTask} />
-        <Route path='/about' component={About} />
-        <Route path='/instruction' component={Instruction} /> 
-        <Route path='/instruction/:id' component={instructionsItem} />
-      </Router>
+      <Provider store={store}>
+        <Router history={browserHistory}>
+          <Route path='/' component={AddTask}/>
+          <Route path='/home' component={AddTask} />
+          <Route path='/about' component={About} />
+          <Route path='/instruction' component={Instruction} /> 
+          <Route path='/instruction/:id' component={instructionsItem} />
+        </Router>
+      </Provider>
     </MuiThemeProvider>,
   document.getElementById('container')
 );

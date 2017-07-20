@@ -6,6 +6,9 @@ import Menu from './Menu';
 import { Paper, TextField, RaisedButton, SelectField, MenuItem } from 'material-ui';
 import FontAwesome from 'react-fontawesome';
 import '../css/Task.css'
+import { connect } from 'react-redux';
+import injectTapEventPlugin from 'react-tap-event-plugin';
+injectTapEventPlugin();
 
 
 
@@ -14,42 +17,28 @@ class AddTask extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      todos: [],
-      allTodos: [],
+      sortType: 'All'
     }
   }
 
   handleSubmit = (e) => {
     const task = this.refs.newTask.input.value;
-    this.setState({ 
-      todos: this.state.todos.concat(
-        { taskName: task, editable: false, checked: false }
-      ),
-      allTodos: this.state.todos.concat(
-        { taskName: task, editable: false, checked: false }
-      ),
-    })
+    this.props.dispatch({ type: 'ADD_TODOS' , payload: { taskName: task, editable: false, checked: false }})
     this.refs.newTask.input.value = '';
   }
 
   deleteItem = (i) => {
-    const newTodos = this.state.todos.filter((todo, key) => {
+    const newTodos = this.props.todos.filter((todo, key) => {
       if (i !== key) return todo;
     })
-    const newAllTodos = this.state.allTodos.filter((todo, key) => {
-      if (i !== key) return todo;
-    })
-    
-    this.setState({
-      todos: newTodos,
-      allTodos: newAllTodos
-    });
+
+    this.props.dispatch({ type: 'REMOVE_ITEM', payload: newTodos});
   }
 
   showEditor = (e, i, taskName) => {
-    const newTodo = this.state.todos[i];
+    const newTodo = this.props.todos[i];
     newTodo.editable = true;
-    this.setState({todos: [...this.state.todos, ...newTodo]});
+    this.props.dispatch({ type: 'SHOW_EDITOR', payload: newTodo });
   }
 
   cencelEditor = (e, todo) => {
@@ -62,7 +51,7 @@ class AddTask extends React.Component {
     }
     
     if (e.target != this.refs.newTodo) {
-      this.setState({todos: [...this.state.todos, ...todo]});
+      this.props.dispatch({ type: 'CENCEL_EDITOR', payload: todo });
     }
   }
 
@@ -71,7 +60,7 @@ class AddTask extends React.Component {
     todo.taskName = this.refs.newTodo.input.value;
     todo.editable = false;
     
-    this.setState({todos: [...this.state.todos, ...todo]})
+    this.props.dispatch({ type: 'SAVE_CHANGES', payload: todo });
   }
 
   style = {
@@ -79,7 +68,6 @@ class AddTask extends React.Component {
   }
 
   checked = (e, todo) => {
-    console.log(todo.checked);
     if (todo.checked === false) {
       todo.checked = true;
       this.style.text= 'line-through'
@@ -87,36 +75,18 @@ class AddTask extends React.Component {
       todo.checked = false;
       this.style.text = 'none'
     }
-    this.setState({
-      todos: [...this.state.todos, ...todo],
-      allTodos: [...this.state.todos, ...todo]
-    });
-    console.log(this.state.allTodos);
+    this.props.dispatch({ type: 'CHECK', payload: todo });
   }
 
   filter = (e) => {
-    const doneTasks = [];
-    const notDoneTasks =[];
-    this.state.todos.forEach(todo => todo.checked ? doneTasks.push(todo) : notDoneTasks.push(todo) )
-
-    if (this.refs.sortList.value == 'All') {
-      this.setState({todos: this.state.allTodos});
-      console.log(this.state.allTodos);
-    }
-
-    if (this.refs.sortList.value == 'Done') {
-      this.setState({todos: doneTasks});
-    } 
-    
-    if (this.refs.sortList.value == 'Not done') {
-      this.setState({todos: notDoneTasks});
-    }
+    this.setState({ sortType: e.nativeEvent.target.value });
   }
 
   render = () => {
-    const answer = `You don't have any tasks.`;
-    const {todos} = this.state;
 
+    const answer = `You don't have any tasks.`;
+    const { todos } = this.props;
+    const { sortType } = this.state;
     return (
       <div className="body" >
         <Paper className="paper" zDepth={3}>
@@ -137,14 +107,16 @@ class AddTask extends React.Component {
           </div> 
           <div>
               
-            { todos.length > 0 ?
+            { todos && todos.length > 0  ?
             todos.map((todo, i) => {
+              if (sortType == 'Done' && todo.checked || sortType == 'Not done' && !todo.checked 
+               || sortType == 'All') {
               return (
-                <div>
+                <div key={i}>
                   {
                     todo.editable === true 
                     ? 
-                      <form className="editItem" onSubmit={(event) => this.save(event, todo)}>
+                      <form key={i} className="editItem" onSubmit={(event) => this.save(event, todo)}>
                         <TextField ref="newTodo" onBlur={(e) => this.cencelEditor(e, todo)} className="editField" type='text' autoFocus placeholder={todo.taskName} />
                       </form> 
                     :
@@ -162,7 +134,10 @@ class AddTask extends React.Component {
                       </div>
                   }
                 </div>
-              )}
+              )} else {
+                <p className="answer">{answer}</p>
+              }
+              }
                
             ) : <p className="answer">{answer}</p> }
           </div>
@@ -172,4 +147,8 @@ class AddTask extends React.Component {
   }
 }
 
-export default AddTask;
+export default connect(state => {
+  return {
+    todos: state.todos
+  }
+})(AddTask);
