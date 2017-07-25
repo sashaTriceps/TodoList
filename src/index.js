@@ -6,14 +6,15 @@ import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import AddTask from './components/Tasks';
 import About from './components/About';
 import Instruction from './components/Instruction';
-import Counter from './components/Counter';
 import instructionsItem from './components/instructionsItem';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import TodoReducer from './reducers/TodoReducer';
+import { createStore, applyMiddleware } from 'redux';
+// import TodoReducer from './reducers/TodoReducer';
+import rootReducer from './reducers/index';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
+import { logger } from './enhancers/logger'
 
-const store = createStore(TodoReducer);
+const store = createStore(rootReducer, applyMiddleware(logger));
 
 ReactDOM.render(
     <MuiThemeProvider>

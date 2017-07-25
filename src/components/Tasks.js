@@ -7,23 +7,22 @@ import { Paper, TextField, RaisedButton, SelectField, MenuItem } from 'material-
 import FontAwesome from 'react-fontawesome';
 import '../css/Task.css'
 import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { addCount, decrement } from '../actions/CounterActionsCreators';
+import { addTodos, removeTodos, showEditor, cancelEditor, saveEditor,
+ checkTask, sorting } from '../actions/TodoListActionsCreators';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
-
-
 
 
 class AddTask extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      sortType: 'All'
-    }
   }
 
   handleSubmit = (e) => {
     const task = this.refs.newTask.input.value;
-    this.props.dispatch({ type: 'ADD_TODOS' , payload: { taskName: task, editable: false, checked: false }})
+    this.props.addTodos(task);
     this.refs.newTask.input.value = '';
   }
 
@@ -32,42 +31,50 @@ class AddTask extends React.Component {
       if (i !== key) return todo;
     })
 
-    this.props.dispatch({ type: 'REMOVE_ITEM', payload: newTodos});
+    this.props.removeTodos(newTodos);
   }
 
-  showEditor = (e, i, taskName) => {
-    const newTodo = this.props.todos[i];
-    newTodo.editable = true;
-    this.props.dispatch({ type: 'SHOW_EDITOR', payload: newTodo });
+  showEditor = (e, i, todo) => {
+    const newTodos = this.props.todos.toJS()
+    newTodos[i].editable = true;
+    this.props.showEditor(newTodos);
   }
 
-  cencelEditor = (e, todo) => {
+  cancelEditor = (e, i) => {
+    const newTodos = this.props.todos.toJS();
     if (this.refs.newTodo.input.value == '') {
-      todo.taskName = this.refs.newTodo.input.placeholder;
-      todo.editable = false; 
+      newTodos[i].taskName = this.refs.newTodo.input.placeholder;
+      newTodos[i].editable = false; 
     } else {
-      todo.taskName = this.refs.newTodo.input.value;
-      todo.editable = false;
+      newTodos[i].taskName = this.refs.newTodo.input.value;
+      newTodos[i].editable = false;
     }
     
     if (e.target != this.refs.newTodo) {
-      this.props.dispatch({ type: 'CENCEL_EDITOR', payload: todo });
+      this.props.cancelEditor(newTodos);
     }
   }
 
-  save = (event, todo) => {
+  save = (event, i) => {
     event.preventDefault();
-    todo.taskName = this.refs.newTodo.input.value;
-    todo.editable = false;
-    
-    this.props.dispatch({ type: 'SAVE_CHANGES', payload: todo });
+    const todos = this.props.todos.toJS()
+
+    if (this.refs.newTodo.input.value == '') {
+      todos[i].taskName = this.refs.newTodo.input.placeholder;
+      todos[i].editable = false; 
+    } else {
+      todos[i].taskName = this.refs.newTodo.input.value;
+      todos[i].editable = false;
+    }    
+    this.props.saveEditor(todos);
   }
 
   style = {
     textDecoration: 'none'
   }
 
-  checked = (e, todo) => {
+  checked = (e, todo, todos) => { 
+  
     if (todo.checked === false) {
       todo.checked = true;
       this.style.text= 'line-through'
@@ -75,49 +82,70 @@ class AddTask extends React.Component {
       todo.checked = false;
       this.style.text = 'none'
     }
-    this.props.dispatch({ type: 'CHECK', payload: todo });
+
+    const index = todos.indexOf(todo)
+
+    this.props.checkTask(index);
   }
 
   filter = (e) => {
-    this.setState({ sortType: e.nativeEvent.target.value });
+    this.props.sorting(e);
   }
 
   render = () => {
-
     const answer = `You don't have any tasks.`;
-    const { todos } = this.props;
-    const { sortType } = this.state;
+    const { todos, currentSortType, counter } = this.props;
     return (
       <div className="body" >
         <Paper className="paper" zDepth={3}>
           <Menu className="menu"/>
+          <div className="count" >
+            <RaisedButton onClick={e => this.props.addCount(counter)}>+</RaisedButton>
+            <p>{counter}</p>
+            <RaisedButton onClick={e => this.props.decrement(counter)}>-</RaisedButton>
+          </div>
           <div className="appName">
             <h3 className="name">
               Todo List with React!
             </h3>
           </div>
           <div className="controlField">
-              <TextField className="textField" ref="newTask" placeholder="Write your task here."/>
-              <RaisedButton className="addButton" primary={true} onClick={e => this.handleSubmit(e)}>Add Task</RaisedButton>
-            <select className="select" onChange={this.filter} ref="sortList">
+              <TextField className="textField" 
+                         ref="newTask" 
+                         placeholder="Write your task here."/>
+              <RaisedButton className="addButton" 
+                            primary={true} 
+                            onClick={e => this.handleSubmit(e)}>Add Task</RaisedButton>
+            <select className="select" 
+                    onChange={this.filter} 
+                    ref="sortList" 
+                    value={this.props.currentSortType}>
               <option>All</option>
               <option>Done</option>
               <option>Not done</option>
             </select>
           </div> 
           <div>
-              
-            { todos && todos.length > 0  ?
-            todos.map((todo, i) => {
-              if (sortType == 'Done' && todo.checked || sortType == 'Not done' && !todo.checked 
-               || sortType == 'All') {
+            { todos && todos.size > 0  ?
+            todos.toJS().map((todo, i, todos) => {
+              console.log(todos, 'fasdf')
+              {/* console.log(todo); */}
+              if (currentSortType == 'Done' && todo.checked 
+               || currentSortType == 'Not done' && !todo.checked
+               || currentSortType == 'All') {
               return (
                 <div key={i}>
-                  {
+                  {      
                     todo.editable === true 
                     ? 
-                      <form key={i} className="editItem" onSubmit={(event) => this.save(event, todo)}>
-                        <TextField ref="newTodo" onBlur={(e) => this.cencelEditor(e, todo)} className="editField" type='text' autoFocus placeholder={todo.taskName} />
+                      <form key={i} 
+                            className="editItem" 
+                            onSubmit={(event) => this.save(event, i)}>
+                        <TextField ref="newTodo" 
+                                   onBlur={(e) => this.cancelEditor(e, i)} 
+                                   className="editField" type='text' 
+                                   autoFocus 
+                                   placeholder={todo.taskName} />
                       </form> 
                     :
                       <div className="item">
@@ -126,8 +154,8 @@ class AddTask extends React.Component {
                                 check={todo.checked}
                                 className="item"
                                 onClick={() => this.deleteItem(i)} 
-                                onChange={(e) => this.checked(e, todo)} 
-                                onDoubleClick={e => this.showEditor(e, i, todo.taskName)}  
+                                onChange={(e) => this.checked(e, todo, todos)} 
+                                onDoubleClick={e => this.showEditor(e, i, todo)}  
                                 taskName={todo.taskName}
                                 key={i}
                         />
@@ -135,8 +163,8 @@ class AddTask extends React.Component {
                   }
                 </div>
               )} else {
-                <p className="answer">{answer}</p>
-              }
+                  <p className="answer">{answer}</p>
+                }
               }
                
             ) : <p className="answer">{answer}</p> }
@@ -147,8 +175,22 @@ class AddTask extends React.Component {
   }
 }
 
-export default connect(state => {
+export default connect((state) => {
   return {
-    todos: state.todos
+    todos:            state.TodoReducer.get('todos'),
+    currentSortType:  state.TodoReducer.get('currentSortType'),
+    counter:          state.Counter.get('counter')
+  }
+}, dispatch => {
+  return {
+    addCount: bindActionCreators(addCount, dispatch),
+    decrement: bindActionCreators(decrement, dispatch),
+    addTodos: bindActionCreators(addTodos, dispatch),
+    removeTodos: bindActionCreators(removeTodos, dispatch),
+    showEditor: bindActionCreators(showEditor, dispatch),
+    cancelEditor: bindActionCreators(cancelEditor, dispatch),
+    saveEditor: bindActionCreators(saveEditor, dispatch),
+    checkTask: bindActionCreators(checkTask, dispatch),
+    sorting: bindActionCreators(sorting, dispatch)
   }
 })(AddTask);
