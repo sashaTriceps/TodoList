@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { addCount, decrement } from '../actions/CounterActionsCreators';
 import { addTodos, removeTodos, showEditor, cancelEditor, saveEditor,
- checkTask, sorting } from '../actions/TodoListActionsCreators';
+ checkTask, sorting, getTodos, getLastId } from '../actions/TodoListActionsCreators';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 
@@ -20,18 +20,32 @@ class AddTask extends React.Component {
     super(props);
   }
 
-  handleSubmit = (e) => {
+  componentWillMount(todo) {
+    this.props.getTodos();
+    this.props.getLastId(todo);
+  }
+  
+  // componentDidMount(todo) {
+    
+  // }
+
+  handleSubmit = (e, todo, maxId) => {
     const task = this.refs.newTask.input.value;
-    this.props.addTodos(task);
+    const MaxId = this.props.maxId;
+    this.props.getLastId(todo);
+    this.props.addTodos(task, todo, MaxId);
     this.refs.newTask.input.value = '';
   }
 
-  deleteItem = (i) => {
-    const newTodos = this.props.todos.filter((todo, key) => {
-      if (i !== key) return todo;
+  deleteItem = (todo, i) => {
+    const newTodos = this.props.todos.toJS().filter((task, key) => {
+      if (i !== key) {
+        return task;
+      } 
     })
+    console.log(newTodos);
 
-    this.props.removeTodos(newTodos);
+    this.props.removeTodos(newTodos, todo);
   }
 
   showEditor = (e, i, todo) => {
@@ -83,9 +97,7 @@ class AddTask extends React.Component {
       this.style.text = 'none'
     }
 
-    const index = todos.indexOf(todo)
-
-    this.props.checkTask(index);
+    this.props.checkTask(todos);
   }
 
   filter = (e) => {
@@ -94,7 +106,7 @@ class AddTask extends React.Component {
 
   render = () => {
     const answer = `You don't have any tasks.`;
-    const { todos, currentSortType, counter } = this.props;
+    const { todos, currentSortType, counter, maxId } = this.props;
     return (
       <div className="body" >
         <Paper className="paper" zDepth={3}>
@@ -115,7 +127,7 @@ class AddTask extends React.Component {
                          placeholder="Write your task here."/>
               <RaisedButton className="addButton" 
                             primary={true} 
-                            onClick={e => this.handleSubmit(e)}>Add Task</RaisedButton>
+                            onClick={e => this.handleSubmit(e, maxId)}>Add Task</RaisedButton>
             <select className="select" 
                     onChange={this.filter} 
                     ref="sortList" 
@@ -128,17 +140,16 @@ class AddTask extends React.Component {
           <div>
             { todos && todos.size > 0  ?
             todos.toJS().map((todo, i, todos) => {
-              console.log(todos, 'fasdf')
-              {/* console.log(todo); */}
+              console.log(todo);
               if (currentSortType == 'Done' && todo.checked 
                || currentSortType == 'Not done' && !todo.checked
                || currentSortType == 'All') {
               return (
-                <div key={i}>
+                <div key={todo.id}>
                   {      
                     todo.editable === true 
                     ? 
-                      <form key={i} 
+                      <form key={todo.id} 
                             className="editItem" 
                             onSubmit={(event) => this.save(event, i)}>
                         <TextField ref="newTodo" 
@@ -153,11 +164,11 @@ class AddTask extends React.Component {
                                 styles={this.style}
                                 check={todo.checked}
                                 className="item"
-                                onClick={() => this.deleteItem(i)} 
+                                onClick={() => this.deleteItem(todo, i)} 
                                 onChange={(e) => this.checked(e, todo, todos)} 
                                 onDoubleClick={e => this.showEditor(e, i, todo)}  
                                 taskName={todo.taskName}
-                                key={i}
+                                key={todo.id}
                         />
                       </div>
                   }
@@ -179,6 +190,7 @@ export default connect((state) => {
   return {
     todos:            state.TodoReducer.get('todos'),
     currentSortType:  state.TodoReducer.get('currentSortType'),
+    maxId:            state.TodoReducer.get('maxId'),
     counter:          state.Counter.get('counter')
   }
 }, dispatch => {
@@ -191,6 +203,8 @@ export default connect((state) => {
     cancelEditor: bindActionCreators(cancelEditor, dispatch),
     saveEditor: bindActionCreators(saveEditor, dispatch),
     checkTask: bindActionCreators(checkTask, dispatch),
-    sorting: bindActionCreators(sorting, dispatch)
+    sorting: bindActionCreators(sorting, dispatch),
+    getTodos: bindActionCreators(getTodos, dispatch),
+    getLastId: bindActionCreators(getLastId, dispatch)
   }
 })(AddTask);

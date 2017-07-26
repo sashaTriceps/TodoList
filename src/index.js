@@ -9,12 +9,12 @@ import Instruction from './components/Instruction';
 import instructionsItem from './components/instructionsItem';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
-// import TodoReducer from './reducers/TodoReducer';
+import thunk from 'redux-thunk';
 import rootReducer from './reducers/index';
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
 import { logger } from './enhancers/logger'
 
-const store = createStore(rootReducer, applyMiddleware(logger));
+const store = createStore(rootReducer, applyMiddleware(logger, thunk));
 
 ReactDOM.render(
     <MuiThemeProvider>
