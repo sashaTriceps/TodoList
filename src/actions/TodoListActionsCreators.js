@@ -3,17 +3,21 @@ import Immutable from 'immutable';
 import { ADD_TODOS, REMOVE_ITEM, CHECK, SHOW_EDITOR, CANCEL_EDITOR, SAVE_CHANGES, CHANGE_SORT_TYPE } from './TodoListActionsConfig';
 
 
-export const addTodos = (task, todo, MaxId) => {
-  console.log(MaxId);
+const setLoadFalse = () => ({type: 'GET_TASKS_REQUEST', payload: false})
+
+export const addTodos = (task, todo, MaxId, loader) => {
   return dispatch => {
     const url = 'http://59772a10312bc3001190bfc5.mockapi.io/tasks';
     const options = {
       method: 'POST',
       body: task
     }
+
+    dispatch(setLoadFalse());
+    console.log(loader);
     fetch(url, options)
       .then(response => {
-        dispatch({type: ADD_TODOS, payload: Immutable.fromJS({ taskName: task, id: String(+MaxId + 1),  editable: false, checked: false })});
+        dispatch({type: ADD_TODOS, payload: Immutable.fromJS({ taskName: task, id: String(+MaxId + 1),  editable: false, checked: false }), loaded: true})
       })
       .catch(err => {
         console.log(err);
@@ -39,22 +43,21 @@ export const getLastId = (todo) => {
   }
 }
 
-export const getTodos = () => {
-  
+export const getTodos = (loader) => {
+  console.log(loader)
   return dispatch => {
     const url = 'http://59772a10312bc3001190bfc5.mockapi.io/tasks';
-
+    dispatch(setLoadFalse())
     fetch(url)
-      .then(response => {
-        
+      .then(response => {        
         response.json().then(data => {
           
-          let dataArr = []
-          data.forEach((item, i) => {
-            dataArr.push({ taskName: data[i].taskName, id: data[i].id, editable: false, checked: false })
+
+          const dataArr = data.map((item, i) => {
+            return ({ taskName: data[i].taskName, id: data[i].id, editable: false, checked: false })
           })
           
-          dispatch({type: 'RECIVING_DATA', payload: Immutable.fromJS(dataArr)});
+          dispatch({type: 'RECIVING_DATA', payload: Immutable.fromJS(dataArr), loaded: true});
       });
       })
       .catch(err => {
@@ -66,11 +69,11 @@ export const getTodos = () => {
 export const removeTodos = (newTodos, todo) => {
   return dispatch => {
     const url = `http://59772a10312bc3001190bfc5.mockapi.io/tasks/${todo.id}`;
-
+    dispatch(setLoadFalse());
     fetch(url, {method: 'delete'})
       .then(response => {
         response.json().then(json => {
-          dispatch({type: REMOVE_ITEM, payload: newTodos})
+          dispatch({type: REMOVE_ITEM, payload: newTodos, loaded: true})
         })
       })
   }
@@ -83,19 +86,38 @@ export const showEditor = (newTodos) => {
   }
 }
 
-export const cancelEditor = (newTodos) => {
-  return {
-    type: CANCEL_EDITOR,
-    payload: Immutable.List(newTodos)
+export const saveChanges = (todos, todo) => {
+  return dispatch => {
+    const url = `http://59772a10312bc3001190bfc5.mockapi.io/tasks/${todo.id}`;
+    const options = {
+      method: 'PUT',
+      body: todo.taskName
+    }
+    dispatch(setLoadFalse());
+    fetch(url, options)
+      .then(response => {
+        dispatch({type: 'SAVE_CHANGES', payload: Immutable.List(todos), loaded: true});
+      })
+      .catch(err => {
+        console.log(err);
+      })
   }
 }
 
-export const saveEditor = (todos) => {
-  return {
-    type: SAVE_CHANGES,
-    payload: Immutable.List(todos)
-  }
-}
+// export const cancelEditor = (todos, todo) => {
+//   console.log(todo.id);
+//   return {
+//     type: CANCEL_EDITOR,
+//     payload: Immutable.List(todos)
+//   }
+// }
+
+// export const saveEditor = (todos, todo) => {
+//   return {
+//     type: SAVE_CHANGES,
+//     payload: Immutable.List(todos)
+//   }
+// }
 
 export const checkTask = (todos) => {
   return {
