@@ -104,25 +104,10 @@ export const saveChanges = (todos, todo) => {
   }
 }
 
-// export const cancelEditor = (todos, todo) => {
-//   console.log(todo.id);
-//   return {
-//     type: CANCEL_EDITOR,
-//     payload: Immutable.List(todos)
-//   }
-// }
-
-// export const saveEditor = (todos, todo) => {
-//   return {
-//     type: SAVE_CHANGES,
-//     payload: Immutable.List(todos)
-//   }
-// }
-
 export const checkTask = (todos) => {
   return {
     type: CHECK,
-    payload: todos
+    payload: Immutable.fromJS(todos)
   }
 }
 

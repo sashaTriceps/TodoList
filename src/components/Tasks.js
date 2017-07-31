@@ -1,5 +1,7 @@
 import React from 'react';
-import TodoItem from './TodoItem';
+import Tasks from './renderTasks';
+// import TodoItem from './TodoItem';
+import Immutable from 'immutable';
 import About from './About';
 import Instruction from './Instruction';
 import Menu from './Menu';
@@ -56,39 +58,37 @@ class AddTask extends React.Component {
     this.props.showEditor(newTodos);
   }
 
-  cancelEditor = (e, i, todo) => {
+  cancelEditor = (e, todo, i, input ) => {
     const todos = this.props.todos.toJS();
-    if (this.refs.newTodo.input.value == '') {
-      todos[i].taskName = this.refs.newTodo.input.placeholder;
+
+    if (input.input.value == '') {
+      todos[i].taskName = input.input.placeholder;
       todos[i].editable = false; 
     } else {
-      todos[i].taskName = this.refs.newTodo.input.value;
+      todos[i].taskName = input.input.value;
       todos[i].editable = false;
     }
+
     const newTodo = todos[i].taskName;
-    console.log(newTodo);
-    console.log(todos);
     
     if (e.target != this.refs.newTodo) {
       this.props.saveChanges(todos, todo)
-      // this.props.cancelEditor(todos, todo);
     }
   }
 
-  save = (event, i, todo) => {
+  save = (event, i, todo, input) => {
     event.preventDefault();
     const todos = this.props.todos.toJS()
 
-    if (this.refs.newTodo.input.value == '') {
-      todos[i].taskName = this.refs.newTodo.input.placeholder;
+    if (input.input.value == '') {
+      todos[i].taskName = input.input.placeholder;
       todos[i].editable = false; 
     } else {
-      todos[i].taskName = this.refs.newTodo.input.value;
+      todos[i].taskName = input.input.value;
       todos[i].editable = false;
     }  
     const newTodo = todos[i].taskName;  
     this.props.saveChanges(todos, todo)
-    // this.props.saveEditor(todos, todo);
   }
 
   style = {
@@ -96,6 +96,8 @@ class AddTask extends React.Component {
   }
 
   checked = (e, todo, todos) => { 
+    
+    console.log(todo.checked);
   
     if (todo.checked === false) {
       todo.checked = true;
@@ -104,7 +106,8 @@ class AddTask extends React.Component {
       todo.checked = false;
       this.style.text = 'none'
     }
-
+    console.log(todo.checked);
+    console.log(todos);
     this.props.checkTask(todos);
   }
 
@@ -146,52 +149,19 @@ class AddTask extends React.Component {
               <option>Not done</option>
             </select>
           </div> 
-          <div>
-            
-            { isLoaded === false ? <p className="answer">{loader}</p> :
-              todos && todos.size > 0  ?
-              isLoaded === false ? <p className="answer">{loader}</p> :
-            todos.toJS().map((todo, i, todos) => {
-              {/* console.log(todo); */}
-              if (currentSortType == 'Done' && todo.checked 
-               || currentSortType == 'Not done' && !todo.checked
-               || currentSortType == 'All') {
-              return (
-                <div key={todo.id}>
-                  {      
-                    todo.editable === true 
-                    ? 
-                      <form key={todo.id} 
-                            className="editItem" 
-                            onSubmit={(event) => this.save(event, i, todo)}>
-                        <TextField ref="newTodo" 
-                                   onBlur={(e) => this.cancelEditor(e, i, todo)} 
-                                   className="editField" type='text' 
-                                   autoFocus 
-                                   placeholder={todo.taskName} />
-                      </form> 
-                    :
-                      <div className="item">
-                        <TodoItem ref="task"
-                                styles={this.style}
-                                check={todo.checked}
-                                className="item"
-                                onClick={() => this.deleteItem(todo, i)} 
-                                onChange={(e) => this.checked(e, todo, todos)} 
-                                onDoubleClick={e => this.showEditor(e, i, todo)}  
-                                taskName={todo.taskName}
-                                key={todo.id}
-                        />
-                      </div>
-                  }
-                </div>
-              )} else {
-                  <p className="answer">{answer}</p>
-                }
-              }
-               
-            ) : <p className="answer">{answer}</p> }
-          </div>
+          <Tasks loader={loader}
+                  isLoaded={isLoaded}
+                  todos={todos}
+                  currentSortType={currentSortType}
+                  onSubmit={this.save}
+                  onBlur={this.cancelEditor}
+                  onClick={(e, todo, i) => this.deleteItem(todo, i)}
+                  onChange={this.checked}
+                  onDoubleClick={(e, todo, i) => this.showEditor(e, i, todo)}
+                  answer={answer}
+                  ref1="task"
+                  ref2="newTodo"
+          /> 
         </Paper>
       </div>
     )
